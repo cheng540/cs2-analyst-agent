@@ -1,0 +1,22 @@
+[
+  {
+    "market_hash_name": "AK-47 | Redline (Field-Tested)",
+    "wear": "FT",
+    "quantity": 2,
+    "buy_price": 96.5,
+    "buy_date": "2026-03-10",
+    "platform": "YOUPIN",
+    "special_style": "",
+    "note": ""
+  },
+  {
+    "market_hash_name": "AWP | Asiimov (Battle-Scarred)",
+    "wear": "BS",
+    "quantity": 1,
+    "buy_price": 268.0,
+    "buy_date": "2026-02-15",
+    "platform": "YOUPIN",
+    "special_style": "",
+    "note": ""
+  }
+]

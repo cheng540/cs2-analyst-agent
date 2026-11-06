@@ -1,0 +1,15 @@
+[Unit]
+Description=CS2 Portfolio Reports Web Viewer
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/cs2-analyst
+ExecStart=/root/cs2-analyst/venv/bin/python /root/cs2-analyst/tools/report_server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/root/cs2-analyst/logs/report_server.log
+StandardError=append:/root/cs2-analyst/logs/report_server.log
+
+[Install]
+WantedBy=multi-user.target

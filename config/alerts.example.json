@@ -1,0 +1,36 @@
+{
+  "_说明": "价格异动告警配置模板：监控持仓 + 每日 AI 筛选的关注标的，9:00–24:00 每小时巡检；紧急信号即时推送，温和波动静默记录并在 12:00/22:00 汇总",
+
+  "alerts": {
+    "enabled": true,
+    "times": [0, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+
+    "drop_pct_vs_last": 3.0,
+    "drop_pct_vs_yesterday": 5.0,
+    "rise_pct_vs_last": 4.0,
+    "rise_pct_vs_yesterday": 6.0,
+    "sell_count_change_pct": 30.0,
+    "loss_alert_pct": 40.0,
+    "profit_alert_pct": 20.0,
+    "break_support": true,
+    "signal_alert": true,
+
+    "urgent_drop_pct": 4.0,
+    "urgent_rise_pct": 6.0,
+    "summary_times": [12, 22],
+    "urgent_max_per_kind_per_day": 3,
+    "confirm_urgent": true,
+    "confirm_window_minutes": 90,
+    "confirm_tolerance_pct": 1.0,
+    "cooldown_hours": 24,
+    "fallback_max_items": 8,
+    "batch_retry_wait": 65,
+    "intraday_keep_days": 180,
+
+    "ai_commentary": true,
+    "max_items": 30,
+    "watch_top_n": 5,
+    "outlier_pct": 60.0,
+    "interval_seconds": 1.0
+  }
+}

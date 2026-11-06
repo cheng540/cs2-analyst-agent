@@ -1,0 +1,161 @@
+# ============================================================
+# 配置模板（可安全分享 / 提交到公开仓库）
+#
+# 用法：复制为 config/config.yaml 后填入自己的 Key；
+# 或直接用环境变量提供（优先于本文件，适合服务器 / CI）：
+#     STEAMDT_API_KEY / DEEPSEEK_API_KEY / WECOM_WEBHOOK
+# ============================================================
+
+# ============================================================
+# CS2 饰品持仓智能分析 Agent - 主配置文件
+# 所有阈值/参数均可在此修改，无需改代码
+# ============================================================
+
+steamdt:
+  base_url: "https://open.steamdt.com"
+  # API Key：在 https://www.steamdt.com 注册后，进入「个人中心 - API管理」免费申请，
+  # 复制粘贴到下方引号内即可（留空则只能运行 --demo 演示模式）
+  api_key: ""
+  timeout: 20            # 单次请求超时（秒）
+  retry: 3               # 网络错误重试次数
+  kline_days: 200        # 单品日K拉取根数（需覆盖 6 个月百分位窗口）
+  platform: "ALL"        # K线数据平台: ALL/BUFF/YOUPIN/C5/STEAM/HALOSKINS
+  special_style: ""      # 特殊款式（饰品名称自带特殊样式时可不填，如「★蝴蝶刀 | 渐变之色 (Factory New)」无需填）
+  request_gap: 1.2       # 单品K线请求间隔（秒），避免触发限速
+
+analysis:
+  ma_windows: [5, 10, 20]        # 均线窗口
+  percentile_window_days: 180    # 价格位置百分位的回看窗口（近6个月）
+  position_low: 30               # <= 该百分位判为「低位」
+  position_high: 70              # >= 该百分位判为「高位」
+  support_lookback_days: 60      # 支撑/压力位识别回看天数
+  break_lookback_days: 20        # 「有效跌破前支撑」的前支撑回看窗口（根）
+  swing_window: 3                # 摆动高低点识别窗口
+  support_tolerance: 0.02        # 收盘价低于支撑 2% 视为「有效跌破」
+  break_confirm_days: 2          # 有效跌破需连续 N 天收盘低于支撑
+  volume_expand_ratio: 1.3       # 近期振幅/前期振幅 >= 该值视为「放量」（K线无成交量的代理指标）
+  volume_shrink_ratio: 0.75      # 近期振幅/前期振幅 <= 该值视为「缩量」
+  stagnation_return: 0.01        # 5日涨跌幅绝对值 < 该值视为「滞涨」
+
+decision:
+  stop_loss_pct: 0.30            # 单品亏损 >= 30% 触发止损红线（需配合趋势/流动性）
+  hold_loss_pct: 0.15            # 亏损 < 15% 的持有观察线
+  take_profit_pct: 0.20          # 盈利 >= 20% 建议分批止盈
+  max_add_position_weight: 0.15  # 补仓后单品市值不得超过总持仓的 15%
+  add_ratio: 0.25                # 试探性补仓数量 = 当前持仓量的 25%（向上取整）
+  heavy_weight_threshold: 0.30   # 单品市值占比 >= 30% 视为「持仓占比过高」
+  liquidity_low: 300             # 在售+求购量 < 300 视为低流动性
+  liquidity_high: 1000           # 在售+求购量 >= 1000 视为高流动性
+  snapshot_liq_high: 150         # 快照模式（无Key）：当日成交数 >= 150 高流动性
+  snapshot_liq_low: 40           # 快照模式：当日成交数 < 40 低流动性
+  allow_add_risk_levels: ["低风险", "中风险"]   # 允许补仓的大盘风险等级
+
+# 旧的每日时间（兼容保留）：reports.daily_time 没写时用它兜底
+schedule:
+  enabled: false                 # 已不再作为总开关；用 reports.* 与 alerts.enabled 控制
+  hour: 17                       # 每日执行小时（0-23），默认收盘后
+  minute: 30                     # 每日执行分钟（0-59）
+  run_missed: true               # 错过时间点后是否补跑
+  timezone: "Asia/Shanghai"
+
+paths:
+  data_dir: "data"                       # 本地数据缓存目录
+  report_dir: "reports"                  # Word 报告输出目录
+  log_dir: "logs"                        # 日志目录
+  inventory_file: "config/inventory.json"  # 持仓文件路径
+
+report:
+  author: "CS2 持仓智能分析 Agent"
+  heading_font: "微软雅黑"
+  body_font: "微软雅黑"
+
+# ------------------------------------------------------------
+# 模拟盘（纸上交易）：虚拟资金自由操盘，每日记录净值/操作/想法
+# ------------------------------------------------------------
+sim:
+  enabled: true               # 每日流水线是否运行模拟盘
+  initial_capital: 3000.0     # 模拟资金（元）
+  fee_rate: 0.01              # 卖出手续费 1%（买入免费；2.5% 是早期错误假设，已更正）
+  withdraw_fee_rate: 0.01     # 钱包提现再收 1%（不提现、继续买饰品则不发生）
+  hold_days_min: 7            # T+7 交易规则：买入后最短持有 7 天，锁定期内不可卖出
+  dual_track: true            # 双轨对照：A 轨纯规则 / B 轨规则+AI 研判
+  min_cash_ratio: 0.15        # 常态最低现金储备
+  high_risk_cash_ratio: 0.30  # 大盘高风险时最低现金储备
+  max_position_pct: 25.0      # 单票仓位上限（%总权益）
+  watchlist_file: "config/sim_watchlist.json"
+  state_file: "data/sim/state_a.json"      # A 轨（纯规则）
+  state_file_b: "data/sim/state_b.json"    # B 轨（规则 + AI 研判）
+
+# ------------------------------------------------------------
+# LLM 智能研判层（DeepSeek，OpenAI 兼容接口）
+#
+# 2026-09-24 实测结论（同一份事实、同一个问题，三方对比）：
+#   旧配置 deepseek-chat（退役别名 = Flash 且不开思考） 1.5 秒，结论对但推理浅
+#   deepseek-flash + 思考                              6.7 秒，补上"为什么是这两件"的比较性推理
+#   deepseek-v4-pro + 思考                            33.3 秒，只比 flash+思考再细一点，价格约 4 倍
+# 结论：判断类用 flash+思考（性价比最高）；交互类保持不思考（延迟敏感）；
+#       低频重活（周报/月报复盘）用 v4-pro+思考。不要再使用 deepseek-chat 这种退役别名。
+# ------------------------------------------------------------
+llm:
+  enabled: true
+  api_key: ""
+  base_url: "https://api.deepseek.com"
+  model: "deepseek-flash"     # 显式钉住；勿用退役别名 deepseek-chat
+  timeout: 180
+  max_tokens: 4000            # 兜底值（各 profile 可覆盖）
+  max_output_cap: 32000       # 空正文/截断时自动加倍预算的上限
+  temperature: 0.4            # 仅非思考模式生效（思考模式下官方会忽略该参数）
+  profiles:
+    judgement: {model: "deepseek-flash",  thinking: true,  max_tokens: 12000}  # 每日研判 + B 轨决策
+    chat:      {model: "deepseek-flash",  thinking: false, max_tokens: 4000}  # 网页问答（延迟优先）
+    alert:     {model: "deepseek-flash",  thinking: false, max_tokens: 1200}  # 盘中告警点评
+    review:    {model: "deepseek-v4-pro", thinking: true,  max_tokens: 8000}  # 周报/月报复盘
+
+# ------------------------------------------------------------
+# 情报采集（官方更新公告 / 市场异动）
+# ------------------------------------------------------------
+intel:
+  enabled: true
+  news_appid: 730             # CS2 的 Steam appid（官方更新公告走 Steam 新闻）
+  news_count: 12
+  news_maxlen: 500
+  anomaly_page_size: 20
+
+# ------------------------------------------------------------
+# 每日推送（跑完自动把摘要发到手机）
+# ------------------------------------------------------------
+notify:
+  enabled: true
+  channel: "wecom"            # 企业微信机器人
+  wecom_webhook: ""
+  only_if_actions: false      # true = 仅当模拟盘有买卖动作时才推送
+
+# ------------------------------------------------------------
+# 报告开关（客户可自选）：三个报告互不影响，关掉就不生成、不推送
+#   · 时间用 HH:MM 字符串，改完在服务器执行
+#       python tools/install_cron.py --install
+#     让 cron 与配置对齐；本地直接 python main.py schedule 常驻即可。
+# ------------------------------------------------------------
+reports:
+  daily_enabled: true
+  daily_time: "17:30"           # 日报：持仓分析 + Word + 推送
+  noon_enabled: true
+  noon_time: "12:10"            # 午报：盘中概览 + 体检 Word
+  weekly_enabled: true
+  weekly_day: 6                 # 周报星期：0=周一 … 6=周日
+  weekly_time: "20:00"          # 周报：复盘 + 运行健康
+
+# ------------------------------------------------------------
+# 盘中巡检（价格异动提醒）
+#   interval_minutes：多久检查一次。SteamDT 批量取价接口限 1 次/分钟，
+#   所以不要小于 15 分钟，否则会一直吃 errorCode=4005。
+# ------------------------------------------------------------
+alerts:
+  enabled: true
+  interval_minutes: 60
+  # 以下阈值保持默认即可，只是"什么算异动"的判定线
+  urgent_drop_pct: 4.0          # 单次跌幅达此值 → 立即推送
+  urgent_rise_pct: 6.0          # 单次涨幅达此值 → 立即推送
+  summary_times: [12, 22]       # 这两个整点额外发「盘中概览」
+  ai_commentary: true           # 异动时是否附 AI 点评（关掉可省 token）
+  watch_top_n: 5                # 观察池里按评分取前 N 个纳入巡检

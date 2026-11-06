@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>CS2 持仓助手 · 控制台</title>
+<link rel="stylesheet" href="style.css?v=3">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📈</text></svg>">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">CS2 持仓助手<span>控制台</span></div>
+  <nav class="nav">
+    <a href="#/dash" data-route="dash">大盘</a>
+    <a href="#/holdings" data-route="holdings">持仓</a>
+    <a href="#/ask" data-route="ask">问一问</a>
+    <a href="#/settings" data-route="settings">设置</a>
+    <a href="help.html">帮助</a>
+  </nav>
+  <span class="badge-mode" id="mode">连接中…</span>
+</header>
+
+<main id="view">
+  <div class="card"><span class="spin"></span> <span class="muted">正在连接本地服务…</span></div>
+</main>
+
+<noscript><div class="card">这个页面需要 JavaScript。</div></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

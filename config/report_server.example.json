@@ -1,0 +1,8 @@
+{
+  "port": 8899,
+  "username": "cs2",
+  "password": "change-me",
+  "root": ".",
+  "readonly": false,
+  "local_no_auth": false
+}
